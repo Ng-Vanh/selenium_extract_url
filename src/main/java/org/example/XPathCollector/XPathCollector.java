@@ -1,0 +1,91 @@
+package org.example.XPathCollector;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class XPathCollector {
+    static final String CHROME_DRIVER = "C:\\Windows\\chromedriver.exe";
+    static final String WEB_DRIVER = "webdriver.chrome.driver";
+    static final String URL = "https://www.w3schools.com/w3css/tryw3css_templates_band.htm";
+    public static final WebDriver driver = new ChromeDriver();
+    public static String getElementXPath(WebDriver driver, WebElement element) {
+        String js = "function getElementXPath(element) {" +
+                "var paths = [];" +
+                "for (; element && element.nodeType == 1; element = element.parentNode) {" +
+                "var index = 0;" +
+                "for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling) {" +
+                "if (sibling.nodeType == Node.DOCUMENT_TYPE_NODE) {" +
+                "continue;" +
+                "}" +
+                "if (sibling.nodeName == element.nodeName) {" +
+                "++index;" +
+                "}" +
+                "}" +
+                "var tagName = element.nodeName.toLowerCase();" +
+                "var pathIndex = (index ? \"[\" + (index + 1) + \"]\" : \"\");" +
+                "paths.splice(0, 0, tagName + pathIndex);" +
+                "}" +
+                "return paths.length ? \"/\" + paths.join(\"/\") : null;" +
+                "}" +
+                "return getElementXPath(arguments[0]).toLowerCase();";
+        return (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(js, element);
+    }
+    public static Map<String, String> getElementAttributes(WebDriver driver, WebElement element) {
+        Map<String, String> attributes = new HashMap<>();
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        Map<String, Object> attributeMap = (Map<String, Object>) js.executeScript(
+                "var items = {}; " +
+                        "for (index = 0; index < arguments[0].attributes.length; ++index) " +
+                        "{ items[arguments[0].attributes[index].name] = arguments[0].attributes[index].value }; " +
+                        "return items;", element);
+
+        for (Map.Entry<String, Object> entry : attributeMap.entrySet()) {
+            attributes.put(entry.getKey(), entry.getValue().toString());
+        }
+
+        return attributes;
+    }
+
+
+    public static List<String> getAllXPaths(){
+        System.setProperty(WEB_DRIVER, CHROME_DRIVER);
+        driver.get(URL);
+        List<String> res = new ArrayList<>();
+        try {
+
+            List<WebElement> allElements = driver.findElements(By.xpath("//*"));
+            System.out.println(allElements.size());
+            for (WebElement element : allElements) {
+                String xpath = getElementXPath(driver, element);
+                res.add(xpath);
+            }
+
+            return res;
+        } catch (Exception e) {
+            System.out.println("ERROR");
+            e.printStackTrace();
+        } finally {
+           // driver.quit();
+        }
+        return null;
+    }
+
+    public static void main(String[] args) {
+        List<String> xpaths = getAllXPaths();
+        WebElement element = driver.findElement(By.xpath("//html/body/footer/i[3]"));
+        Map<String,String> att = getElementAttributes(driver,element);
+        System.out.println(att);
+        driver.quit();
+//        for(String x: xpaths){
+//            System.out.println(x);
+//        }
+    }
+}
