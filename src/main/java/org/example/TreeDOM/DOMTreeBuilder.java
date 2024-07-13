@@ -4,7 +4,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import java.util.*;
-import java.util.List;
 
 import static org.example.XPathCollector.XPathCollector.driver;
 import static org.example.XPathCollector.XPathCollector.getElementAttributes;
@@ -12,7 +11,11 @@ import static org.example.XPathCollector.XPathCollector.getElementAttributes;
 class DOMTreeBuilder {
 
     public static DomNode buildDOMTree(List<String> xpaths) {
-        DomNode root = new DomNode("root", new HashMap<>(), 0);
+        // Initialize root with <html> tag and its attributes
+        WebElement rootElement = driver.findElement(By.xpath("/html"));
+        Map<String, String> rootAttributes = getElementAttributes(driver, rootElement);
+        DomNode root = new DomNode("html", rootAttributes, 1);
+
         for (String xpath : xpaths) {
             addXPathToTree(root, xpath);
         }
@@ -21,7 +24,7 @@ class DOMTreeBuilder {
 
     private static void addXPathToTree(DomNode root, String xpath) {
         WebElement element = driver.findElement(By.xpath(xpath));
-        Map<String,String> attr = getElementAttributes(driver,element);
+        Map<String,String> attr = getElementAttributes(driver, element);
         String[] parts = xpath.split("/");
         DomNode current = root;
 
