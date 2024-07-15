@@ -55,7 +55,6 @@ public class DomNode {
             String tagName = current.getTagName();
             int nthChild = current.getNthChild();
 
-            // Don't add [nthChild] if it's 1 or the parent has only one child
             if (nthChild > 1 || (current.getParent() != null && current.getParent().getChildren().size() > 1)) {
                 xpath.insert(0, "/" + tagName + "[" + nthChild + "]");
             } else {

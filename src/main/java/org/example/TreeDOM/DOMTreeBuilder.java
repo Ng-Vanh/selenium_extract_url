@@ -11,7 +11,6 @@ import static org.example.XPathCollector.XPathCollector.getElementAttributes;
 class DOMTreeBuilder {
 
     public static DomNode buildDOMTree(List<String> xpaths) {
-        // Initialize root with <html> tag and its attributes
         WebElement rootElement = driver.findElement(By.xpath("/html"));
         Map<String, String> rootAttributes = getElementAttributes(driver, rootElement);
         DomNode root = new DomNode("html", rootAttributes, 1);

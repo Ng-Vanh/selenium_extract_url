@@ -22,17 +22,13 @@ public class DOMTreePrinter {
     }
 
     public static void main(String[] args) {
-        // Example list of XPath expressions
         List<String> xpaths = getAllXPaths();
 
-        // Build the DOM tree
         DomNode root = DOMTreeBuilder.buildDOMTree(xpaths).getChildren().get(0);
 
 
-        // Print the DOM tree
         printDomTree(root, 0);
 
-        // Get full XPath of a node
         if (!root.getChildren().isEmpty()) {
             DomNode exampleNode = root.getChildren().get(0); // Assuming we take the first child for demonstration
             System.out.println("Full XPath: " + exampleNode.getFullXPath());

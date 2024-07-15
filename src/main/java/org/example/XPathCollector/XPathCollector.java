@@ -16,6 +16,7 @@ public class XPathCollector {
     static final String WEB_DRIVER = "webdriver.chrome.driver";
     static final String URL = "https://www.w3schools.com/w3css/tryw3css_templates_band.htm";
     public static final WebDriver driver = new ChromeDriver();
+
     public static String getElementXPath(WebDriver driver, WebElement element) {
         String js = "function getElementXPath(element) {" +
                 "var paths = [];" +
@@ -38,6 +39,7 @@ public class XPathCollector {
                 "return getElementXPath(arguments[0]).toLowerCase();";
         return (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(js, element);
     }
+
     public static Map<String, String> getElementAttributes(WebDriver driver, WebElement element) {
         Map<String, String> attributes = new HashMap<>();
         JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -54,38 +56,45 @@ public class XPathCollector {
         return attributes;
     }
 
+    public static boolean isInteractive(WebElement element) {
+        String tagName = element.getTagName();
+        String type = element.getAttribute("type");
+
+        return tagName.equals("a") || tagName.equals("button") ||
+                (tagName.equals("input") && (type.equals("button") || type.equals("submit") || type.equals("reset") || type.equals("text") || type.equals("password") || type.equals("email"))) ||
+                tagName.equals("select") || tagName.equals("textarea") ||
+                element.getAttribute("onclick") != null || element.getAttribute("onmouseover") != null;
+    }
 
     public static List<String> getAllXPaths(){
         System.setProperty(WEB_DRIVER, CHROME_DRIVER);
         driver.get(URL);
         List<String> res = new ArrayList<>();
         try {
-
             List<WebElement> allElements = driver.findElements(By.xpath("//*"));
-            System.out.println(allElements.size());
             for (WebElement element : allElements) {
-                String xpath = getElementXPath(driver, element);
-                res.add(xpath);
+//                String xpath = getElementXPath(driver, element);
+//                res.add(xpath);
+                if (isInteractive(element)) {
+                    String xpath = getElementXPath(driver, element);
+                    res.add(xpath);
+                }
             }
-
             return res;
         } catch (Exception e) {
             System.out.println("ERROR");
             e.printStackTrace();
         } finally {
-           // driver.quit();
+            // driver.quit();
         }
-        return null;
+        return res;
     }
 
     public static void main(String[] args) {
         List<String> xpaths = getAllXPaths();
-        WebElement element = driver.findElement(By.xpath("//html/body/footer/i[3]"));
-        Map<String,String> att = getElementAttributes(driver,element);
-        System.out.println(att);
+        for (String xpath : xpaths) {
+            System.out.println(xpath);
+        }
         driver.quit();
-//        for(String x: xpaths){
-//            System.out.println(x);
-//        }
     }
 }
