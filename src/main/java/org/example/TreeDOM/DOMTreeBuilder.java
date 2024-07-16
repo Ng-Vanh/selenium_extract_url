@@ -13,7 +13,7 @@ class DOMTreeBuilder {
     public static DomNode buildDOMTree(List<String> xpaths) {
         WebElement rootElement = driver.findElement(By.xpath("/html"));
         Map<String, String> rootAttributes = getElementAttributes(driver, rootElement);
-        DomNode root = new DomNode("html", rootAttributes, 1);
+        DomNode root = new DomNode("", rootAttributes, 1);
 
         for (String xpath : xpaths) {
             addXPathToTree(root, xpath);

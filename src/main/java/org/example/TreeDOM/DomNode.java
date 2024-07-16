@@ -53,6 +53,7 @@ public class DomNode {
         DomNode current = this;
         while (current != null) {
             String tagName = current.getTagName();
+
             int nthChild = current.getNthChild();
 
             if (nthChild > 1 || (current.getParent() != null && current.getParent().getChildren().size() > 1)) {
@@ -63,7 +64,7 @@ public class DomNode {
 
             current = current.getParent();
         }
-        return xpath.toString();
+        return xpath.toString().substring(1);
     }
 
     @Override
