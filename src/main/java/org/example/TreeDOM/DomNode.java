@@ -1,15 +1,20 @@
 package org.example.TreeDOM;
 
+import org.openqa.selenium.Point;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class DomNode {
     private String tagName;
+    private String id;
     private Map<String, String> attributes;
     private List<DomNode> children;
     private int nthChild;
     private DomNode parent;
+    private Point absolutePosition;
+    private Point relativePosition;
 
     public DomNode(String tagName, Map<String, String> attributes, int nthChild) {
         this.tagName = tagName;
@@ -17,6 +22,26 @@ public class DomNode {
         this.children = new ArrayList<>();
         this.nthChild = nthChild;
         this.parent = null;
+    }
+    public DomNode(String tagName, Map<String, String> attributes, int nthChild, Point absolutePosition) {
+        this.tagName = tagName;
+        this.attributes = attributes;
+        this.children = new ArrayList<>();
+        this.nthChild = nthChild;
+        this.parent = null;
+        this.absolutePosition = absolutePosition;
+        this.relativePosition = null;
+    }
+
+    public DomNode(String tagName,String id, Map<String, String> attributes, int nthChild, Point absolutePosition) {
+        this.tagName = tagName;
+        this.id = id;
+        this.attributes = attributes;
+        this.children = new ArrayList<>();
+        this.nthChild = nthChild;
+        this.parent = null;
+        this.absolutePosition = absolutePosition;
+        this.relativePosition = null;
     }
 
     public String getTagName() {
@@ -43,6 +68,18 @@ public class DomNode {
         this.parent = parent;
     }
 
+    public Point getAbsolutePosition() {
+        return absolutePosition;
+    }
+
+    public Point getRelativePosition() {
+        if (relativePosition == null && parent != null) {
+            Point parentPosition = parent.getAbsolutePosition();
+            relativePosition = new Point(absolutePosition.getX() - parentPosition.getX(), absolutePosition.getY() - parentPosition.getY());
+        }
+        return relativePosition;
+    }
+
     public void addChild(DomNode child) {
         child.setParent(this);
         this.children.add(child);
@@ -64,9 +101,8 @@ public class DomNode {
 
             current = current.getParent();
         }
-        return xpath.toString().substring(1);
+        return xpath.toString().substring(5);
     }
-
     @Override
     public String toString() {
         return "DomNode{" +
@@ -74,6 +110,7 @@ public class DomNode {
                 ", attributes=" + attributes +
                 ", children=" + children +
                 ", nthChild=" + nthChild +
+                ", absolutePosition=" + absolutePosition +
                 '}';
     }
 }

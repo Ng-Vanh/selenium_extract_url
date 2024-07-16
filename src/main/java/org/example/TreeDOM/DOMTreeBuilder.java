@@ -1,6 +1,7 @@
 package org.example.TreeDOM;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.Point;
 import org.openqa.selenium.WebElement;
 
 import java.util.*;
@@ -13,7 +14,8 @@ class DOMTreeBuilder {
     public static DomNode buildDOMTree(List<String> xpaths) {
         WebElement rootElement = driver.findElement(By.xpath("/html"));
         Map<String, String> rootAttributes = getElementAttributes(driver, rootElement);
-        DomNode root = new DomNode("", rootAttributes, 1);
+        Point rootPosition = rootElement.getLocation();
+        DomNode root = new DomNode("html", rootAttributes, 1, rootPosition);
 
         for (String xpath : xpaths) {
             addXPathToTree(root, xpath);
@@ -24,6 +26,7 @@ class DOMTreeBuilder {
     private static void addXPathToTree(DomNode root, String xpath) {
         WebElement element = driver.findElement(By.xpath(xpath));
         Map<String,String> attr = getElementAttributes(driver, element);
+        Point elementPosition = element.getLocation();
         String[] parts = xpath.split("/");
         DomNode current = root;
 
@@ -34,13 +37,12 @@ class DOMTreeBuilder {
 
             DomNode child = findChild(current, tagName, nthChild);
             if (child == null) {
-                child = new DomNode(tagName, attr, nthChild);
+                child = new DomNode(tagName, attr, nthChild, elementPosition);
                 current.addChild(child);
             }
             current = child;
         }
     }
-
     private static String getTagName(String part) {
         return part.replaceAll("\\[.*\\]", "");
     }

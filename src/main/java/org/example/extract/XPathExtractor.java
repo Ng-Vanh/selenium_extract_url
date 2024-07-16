@@ -20,14 +20,16 @@ public class XPathExtractor {
 
             List<WebElement> allElements = driver.findElements(By.xpath("//*"));
             WebElement e = allElements.get(23);
-            System.out.println(allElements.size());
+            System.out.println(e.getText());
+            System.out.println(e.getTagName());
+            System.out.println(e.getAttribute("class"));
+
 //            for (WebElement element : allElements) {
 //                Map<String,String> att = getElementAttributes(driver,element);
 //                System.out.println("Attribute: " + att);
 //                String xpath = getElementXPath(driver, element);
 //                System.out.println(xpath);
 //            }
-            System.out.println(e.getRect().x + e.getRect().y);
         } catch (Exception e) {
             System.out.println("ERROR");
             e.printStackTrace();
