@@ -17,13 +17,17 @@ public class DOMTreePrinter {
         System.out.println("===========START==============");
         System.out.println("  ".repeat(level) + node.getTagName() + (node.getNthChild() > 1 ? "[" + node.getNthChild() + "]" : ""));
         String fullXpath = node.getFullXPath();
-        System.out.println( "Full Xpath: " + fullXpath);
+        System.out.println("Full Xpath: " + fullXpath);
+
+        // In ra id của phần tử nếu có
+        if (node.getId() != null && !node.getId().isEmpty()) {
+            System.out.println("  ".repeat(level + 1) + "ID: " + node.getId());
+        }
 
         // In ra vị trí của phần tử
         Point absolutePosition = node.getAbsolutePosition();
         String relativePositionString = getRelativePosition(node);
         System.out.println("  ".repeat(level + 1) + "Relative Position: " + relativePositionString);
-
 
         for (Map.Entry<String, String> entry : node.getAttributes().entrySet()) {
             System.out.println("  ".repeat(level + 1) + entry.getKey() + "=\"" + entry.getValue() + "\"");

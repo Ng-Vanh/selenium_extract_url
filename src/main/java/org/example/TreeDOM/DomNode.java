@@ -44,6 +44,7 @@ public class DomNode {
         this.relativePosition = null;
     }
 
+
     public String getTagName() {
         return tagName;
     }
@@ -80,6 +81,14 @@ public class DomNode {
         return relativePosition;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public void addChild(DomNode child) {
         child.setParent(this);
         this.children.add(child);
@@ -107,6 +116,7 @@ public class DomNode {
     public String toString() {
         return "DomNode{" +
                 "tagName='" + tagName + '\'' +
+                ", id='" + id + '\'' +
                 ", attributes=" + attributes +
                 ", children=" + children +
                 ", nthChild=" + nthChild +

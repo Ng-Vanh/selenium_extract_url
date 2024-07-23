@@ -25,8 +25,9 @@ class DOMTreeBuilder {
 
     private static void addXPathToTree(DomNode root, String xpath) {
         WebElement element = driver.findElement(By.xpath(xpath));
-        Map<String,String> attr = getElementAttributes(driver, element);
+        Map<String, String> attr = getElementAttributes(driver, element);
         Point elementPosition = element.getLocation();
+        String id = element.getAttribute("id");
         String[] parts = xpath.split("/");
         DomNode current = root;
 
@@ -37,7 +38,7 @@ class DOMTreeBuilder {
 
             DomNode child = findChild(current, tagName, nthChild);
             if (child == null) {
-                child = new DomNode(tagName, attr, nthChild, elementPosition);
+                child = new DomNode(tagName, id, attr, nthChild, elementPosition);
                 current.addChild(child);
             }
             current = child;

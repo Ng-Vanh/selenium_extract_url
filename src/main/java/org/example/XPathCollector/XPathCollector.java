@@ -14,7 +14,7 @@ import java.util.Map;
 public class XPathCollector {
     static final String CHROME_DRIVER = "C:\\Windows\\chromedriver.exe";
     static final String WEB_DRIVER = "webdriver.chrome.driver";
-    static final String URL = "https://www.w3schools.com/w3css/tryw3css_templates_band.htm";
+    static final String URL = "https://baomoi.com/";
     public static final WebDriver driver = new ChromeDriver();
 
     public static String getElementXPath(WebDriver driver, WebElement element) {
