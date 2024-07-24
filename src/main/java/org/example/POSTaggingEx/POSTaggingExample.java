@@ -1,8 +1,7 @@
-package org.example.POSTagging;
+package org.example.POSTaggingEx;
 
 import edu.stanford.nlp.pipeline.*;
 import edu.stanford.nlp.ling.*;
-import edu.stanford.nlp.io.IOUtils;
 
 import java.io.File;
 import java.util.Properties;

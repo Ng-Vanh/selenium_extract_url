@@ -1,0 +1,4 @@
+1. Open http://webtest.ranorex.org/wp-login.php
+2. Fill "abc" into "Username"
+3. Fill "ranorex" into "Password" field
+4. Click "Login" button
