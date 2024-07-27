@@ -15,6 +15,8 @@ public class DomNode {
     private DomNode parent;
     private Point absolutePosition;
     private Point relativePosition;
+    private String content;
+    private String className;
 
     public DomNode(String tagName, Map<String, String> attributes, int nthChild) {
         this.tagName = tagName;
@@ -44,6 +46,52 @@ public class DomNode {
         this.relativePosition = null;
     }
 
+    public DomNode(String tagName, Map<String, String> attributes, int nthChild, Point absolutePosition,String content) {
+        this.tagName = tagName;
+        this.attributes = attributes;
+        this.children = new ArrayList<>();
+        this.nthChild = nthChild;
+        this.parent = null;
+        this.absolutePosition = absolutePosition;
+        this.relativePosition = null;
+        this.content = content;
+    }
+
+    public DomNode(String tagName, String id, Map<String, String> attr, int nthChild, Point elementPosition, String content) {
+        this.tagName = tagName;
+        this.attributes = attr;
+        this.children = new ArrayList<>();
+        this.nthChild = nthChild;
+        this.parent = null;
+        this.relativePosition = null;
+        this.content = content;
+    }
+    public DomNode(String tagName, String id, Map<String, String> attr, int nthChild, Point elementPosition, String content,String className) {
+        this.tagName = tagName;
+        this.attributes = attr;
+        this.children = new ArrayList<>();
+        this.nthChild = nthChild;
+        this.parent = null;
+        this.relativePosition = null;
+        this.content = content;
+        this.className = className;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
 
     public String getTagName() {
         return tagName;

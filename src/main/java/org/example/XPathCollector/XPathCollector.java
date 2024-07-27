@@ -14,7 +14,7 @@ import java.util.Map;
 public class XPathCollector {
     static final String CHROME_DRIVER = "C:\\Windows\\chromedriver.exe";
     static final String WEB_DRIVER = "webdriver.chrome.driver";
-    static final String URL = "https://baomoi.com/";
+    public static final String URL = "https://baomoi.com/";
     public static final WebDriver driver = new ChromeDriver();
 
     public static String getElementXPath(WebDriver driver, WebElement element) {
@@ -66,9 +66,9 @@ public class XPathCollector {
                 element.getAttribute("onclick") != null || element.getAttribute("onmouseover") != null;
     }
 
-    public static List<String> getAllXPaths(){
+    public static List<String> getAllXPaths(String url){
         System.setProperty(WEB_DRIVER, CHROME_DRIVER);
-        driver.get(URL);
+        driver.get(url);
         List<String> res = new ArrayList<>();
         try {
             List<WebElement> allElements = driver.findElements(By.xpath("//*"));
@@ -91,7 +91,7 @@ public class XPathCollector {
     }
 
     public static void main(String[] args) {
-        List<String> xpaths = getAllXPaths();
+        List<String> xpaths = getAllXPaths(URL);
         for (String xpath : xpaths) {
             System.out.println(xpath);
         }

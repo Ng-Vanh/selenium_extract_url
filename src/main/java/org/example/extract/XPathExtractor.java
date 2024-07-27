@@ -14,18 +14,22 @@ public class XPathExtractor {
     public static void main(String[] args) {
         System.setProperty("webdriver.chrome.driver", "C:\\Windows\\chromedriver.exe");
         WebDriver driver = new ChromeDriver();
-        driver.get("https://www.w3schools.com/w3css/tryw3css_templates_band.htm");
+        driver.get("https://webtest.ranorex.org/wp-login.php");
         System.out.println(driver.getTitle());
         try {
 
             List<WebElement> allElements = driver.findElements(By.xpath("//*"));
+//            WebElement e2 = allElements.get(32);
+//            WebElement e3 = allElements.get(33);
+//            System.out.println("Tag e2: " +e2.getTagName() +"Text e2:" + e2.getText());
+//            System.out.println();
+//            System.out.println("Tag e3: "+ e3.getTagName() + "Tag e3: " + e3.getText());
 
 
             for (WebElement element : allElements) {
                 Map<String,String> att = getElementAttributes(driver,element);
                 String xpath = getElementXPath(driver, element);
-                String id = element.getAttribute("id");
-                System.out.println(id);
+
             }
         } catch (Exception e) {
             System.out.println("ERROR");

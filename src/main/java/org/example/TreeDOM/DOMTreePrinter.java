@@ -8,6 +8,7 @@ import java.util.Map;
 
 import static org.example.XPathCollector.XPathCollector.driver;
 import static org.example.XPathCollector.XPathCollector.getAllXPaths;
+import static org.example.XPathCollector.XPathCollector.URL;
 
 public class DOMTreePrinter {
     public static void printDomTree(DomNode node, int level) {
@@ -23,11 +24,15 @@ public class DOMTreePrinter {
         if (node.getId() != null && !node.getId().isEmpty()) {
             System.out.println("  ".repeat(level + 1) + "ID: " + node.getId());
         }
+        if (node.getContent() != null && !node.getContent().isEmpty()) {
+            System.out.println("  ".repeat(level + 1) + "TextContent: " + node.getContent());
+        }
+
 
         // In ra vị trí của phần tử
-        Point absolutePosition = node.getAbsolutePosition();
-        String relativePositionString = getRelativePosition(node);
-        System.out.println("  ".repeat(level + 1) + "Relative Position: " + relativePositionString);
+//        Point absolutePosition = node.getAbsolutePosition();
+//        String relativePositionString = getRelativePosition(node);
+//        System.out.println("  ".repeat(level + 1) + "Relative Position: " + relativePositionString);
 
         for (Map.Entry<String, String> entry : node.getAttributes().entrySet()) {
             System.out.println("  ".repeat(level + 1) + entry.getKey() + "=\"" + entry.getValue() + "\"");
@@ -40,9 +45,8 @@ public class DOMTreePrinter {
 
     public static void main(String[] args) {
 
-        List<String> xpaths = getAllXPaths();
 
-        DomNode root = DOMTreeBuilder.buildDOMTree(xpaths);
+        DomNode root = DOMTreeBuilder.buildDOMTree(URL);
 
         printDomTree(root, 0);
 
