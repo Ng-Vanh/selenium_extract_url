@@ -8,6 +8,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -106,7 +107,9 @@ public class ParseNLP {
             if(step.getAction().equals("Open")){
                 String url = step.getObject();
                 urlStep = url;
+                System.out.println("===============TestScript open link=============");
                 System.out.println("driver.get(\"" +urlStep + "\")");
+                System.out.println("================================================");
                 rootTree = DOMTreeBuilder.buildDOMTree(url);
             }
             if(step.getAction().equals("Fill")){
@@ -118,20 +121,33 @@ public class ParseNLP {
                 List<DomNode> sampleNode = DOMTreeBuilder.findNodeCondition(cond, rootTree);
                 System.out.println("Soluong: "+ sampleNode.size());
                 for(DomNode node: sampleNode){
-                    System.out.println(node.getTagName() + "----" + node.getFullXPath() );
-                    System.out.println("     " +node.getAttributes().keySet());
-                    System.out.println("     " +node.getAttributes().values());
-                    System.out.println();
+                    if(node.getAttributes().get("id")!= null || node.getAttributes().get("id")!= ""){
+                        System.out.println("===============TestScript By Id=============");
+                        System.out.println("driver.findElement(By.Id(\"" + node.getAttributes().get("id") +"\").sendKeys(\"" + step.getObject() + "\")");
+                        System.out.println("============================================");
+                    }else{
+                        System.out.println("=========================TEST");
+                    }
 
                 }
 
             }
             if(step.getAction().equals("Click")){
-//                System.out.println("In ra button");
-//                List<String> cond = new ArrayList<>();
-//                cond.add(step.getField());
-//                List<DomNode> sampleNode = DOMTreeBuilder.findNodeCondition(cond, rootTree);
-//                System.out.println(sampleNode.size());
+                System.out.println("In ra button: ");
+                List<String> cond = new ArrayList<>();
+                cond.add(step.getField());
+                cond.add(step.getObject());
+                cond.add("button");
+                List<DomNode> sampleNode = DOMTreeBuilder.findNodeCondition(cond, rootTree);
+                for(DomNode node: sampleNode){
+                    if(node.getAttributes().get("id")!= null || node.getAttributes().get("id")!= ""){
+                        System.out.println("===============TestScript By Id=============");
+                        System.out.println("driver.findElement(By.Id(\"" + node.getAttributes().get("id") +"\").click()");
+                        System.out.println("============================================");
+                    }else{
+                        System.out.println("=========================TEST==========");
+                    }
+                }
             }
         }
 
@@ -169,7 +185,19 @@ public class ParseNLP {
                 }
             } else if (sentenceText.startsWith("Click")) {
                 action = "Click";
-                obj = sentenceText.substring(6).trim();
+                Pattern pattern = Pattern.compile("\"([^\"]*)\"");
+                Matcher matcher = pattern.matcher(sentenceText);
+                List<String> matches = new ArrayList<>();
+                while (matcher.find()) {
+                    matches.add(matcher.group(1));
+                }
+                if (matches.size() >= 2) {
+                    obj = matches.get(0); // Button name or identifier
+                    field = matches.get(1); // Field name
+                } else {
+                    obj = "No object found";
+                    field = "No field found";
+                }
             }
 
             // Print results for each sentence
@@ -183,7 +211,7 @@ public class ParseNLP {
         List<String> data = getInputData(FILE_DATA, NUMBER_COL);
         data.remove(0);
         List<Step> st = new ArrayList<>();
-        for (String s: data.get(0).split("\n")){
+        for (String s: data.get(2).split("\n")){
             st.add(analyzeStep(s));
         }
 
