@@ -1,47 +1,39 @@
 package org.example.generator;
 
-import edu.stanford.nlp.semgraph.SemanticGraph;
-import edu.stanford.nlp.semgraph.SemanticGraphEdge;
+import edu.stanford.nlp.pipeline.*;
+import edu.stanford.nlp.ling.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.example.TreeDOM.DOMTreeBuilder;
+import org.example.TreeDOM.DomNode;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import edu.stanford.nlp.pipeline.*;
-import edu.stanford.nlp.ling.*;
-import edu.stanford.nlp.ling.CoreAnnotations.*;
-import org.example.TreeDOM.DOMTreeBuilder;
-import org.example.TreeDOM.DomNode;
-import org.openqa.selenium.WebElement;
-
 import static org.example.TreeDOM.DOMTreeBuilder.buildDOMTree;
-import static org.example.TreeDOM.DOMTreePrinter.printDomTree;
 
 public class ParseNLP {
-    public static String modelPath = "edu/stanford/nlp/models/pos-tagger/english-left3words-distsim.tagger";
-    private static StanfordCoreNLP pipeline;
-    public static String FILE_DATA = "src/main/resources/data/descript.xlsx";
-    public static int NUMBER_COL = 4;
+    public static final String MODEL_PATH = "edu/stanford/nlp/models/pos-tagger/english-left3words-distsim.tagger";
+    private static final StanfordCoreNLP PIPELINE;
+    public static final String FILE_DATA = "src/main/resources/data/descript.xlsx";
+    public static final int NUMBER_COL = 4;
 
     static {
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos");
+        props.setProperty("pos.model", MODEL_PATH);
 
-        File modelFile = new File(modelPath);
+        File modelFile = new File(MODEL_PATH);
         if (!modelFile.exists()) {
-            System.err.println("Model file not found: " + modelPath);
+            System.err.println("Model file not found: " + MODEL_PATH);
         }
 
-        props.setProperty("pos.model", modelPath);
-
-        pipeline = new StanfordCoreNLP(props);
+        PIPELINE = new StanfordCoreNLP(props);
     }
 
     public static List<String> getInputData(String src, int col) {
@@ -49,112 +41,133 @@ public class ParseNLP {
         try (FileInputStream fis = new FileInputStream(src);
              Workbook workbook = new XSSFWorkbook(fis)) {
 
-            // Đọc tất cả các sheet
             for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
                 Sheet sheet = workbook.getSheetAt(sheetIndex);
                 for (Row row : sheet) {
-                    StringBuilder tmp = new StringBuilder();
                     Cell cell = row.getCell(col);
-                    if (cell != null) {
-                        switch (cell.getCellType()) {
-                            case STRING:
-                                tmp.append(cell.getStringCellValue());
-                                break;
-                            case NUMERIC:
-                                if (DateUtil.isCellDateFormatted(cell)) {
-                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                                    tmp.append(sdf.format(cell.getDateCellValue()));
-                                } else {
-                                    tmp.append(cell.getNumericCellValue());
-                                }
-                                break;
-                            case BOOLEAN:
-                                tmp.append(cell.getBooleanCellValue());
-                                break;
-                            case FORMULA:
-                                switch (cell.getCachedFormulaResultType()) {
-                                    case NUMERIC:
-                                        tmp.append(cell.getNumericCellValue());
-                                        break;
-                                    case STRING:
-                                        tmp.append(cell.getStringCellValue());
-                                        break;
-                                    default:
-                                        tmp.append(cell.getCellFormula());
-                                }
-                                break;
-                            default:
-                                System.out.println("Cell type not supported.");
-                                System.out.println(cell.getCellType());
-                        }
-                    } else {
-                        tmp.append("");
-                    }
-                    res.add(tmp.toString());
+                    res.add(cell != null ? getCellValue(cell) : "");
                 }
             }
-            return res;
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
+        }
+        return res;
+    }
+
+    private static String getCellValue(Cell cell) {
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return new SimpleDateFormat("yyyy-MM-dd").format(cell.getDateCellValue());
+                } else {
+                    return String.valueOf(cell.getNumericCellValue());
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                return getFormulaCellValue(cell);
+            default:
+                return "";
         }
     }
 
-    public static void generateScript(List<Step> steps){
+    private static String getFormulaCellValue(Cell cell) {
+        switch (cell.getCachedFormulaResultType()) {
+            case NUMERIC:
+                return String.valueOf(cell.getNumericCellValue());
+            case STRING:
+                return cell.getStringCellValue();
+            default:
+                return cell.getCellFormula();
+        }
+    }
+
+    public static void generateScript(List<Step> steps) {
         String urlStep = null;
         DomNode rootTree = null;
-        for(Step step:steps){
-            if(step.getAction().equals("Open")){
-                String url = step.getObject();
-                urlStep = url;
-                System.out.println("===============TestScript open link=============");
-                System.out.println("driver.get(\"" +urlStep + "\")");
-                System.out.println("================================================");
-                rootTree = DOMTreeBuilder.buildDOMTree(url);
-            }
-            if(step.getAction().equals("Fill")){
-                System.out.println("In ra Fill:");
-                List<String> cond = new ArrayList<>();
-                cond.add(step.getField());
-                cond.add("input");
-                cond.add("textarea");
-                List<DomNode> sampleNode = DOMTreeBuilder.findNodeCondition(cond, rootTree);
-                System.out.println("Soluong: "+ sampleNode.size());
-                for(DomNode node: sampleNode){
-                    if(node.getAttributes().get("id")!= null || node.getAttributes().get("id")!= ""){
-                        System.out.println("===============TestScript By Id=============");
-                        System.out.println("driver.findElement(By.Id(\"" + node.getAttributes().get("id") +"\").sendKeys(\"" + step.getObject() + "\")");
-                        System.out.println("============================================");
-                    }else{
-                        System.out.println("=========================TEST");
-                    }
-
-                }
-
-            }
-            if(step.getAction().equals("Click")){
-                System.out.println("In ra button: ");
-                List<String> cond = new ArrayList<>();
-                cond.add(step.getField());
-                cond.add(step.getObject());
-                cond.add("button");
-                List<DomNode> sampleNode = DOMTreeBuilder.findNodeCondition(cond, rootTree);
-                for(DomNode node: sampleNode){
-                    if(node.getAttributes().get("id")!= null || node.getAttributes().get("id")!= ""){
-                        System.out.println("===============TestScript By Id=============");
-                        System.out.println("driver.findElement(By.Id(\"" + node.getAttributes().get("id") +"\").click()");
-                        System.out.println("============================================");
-                    }else{
-                        System.out.println("=========================TEST==========");
-                    }
-                }
+        for (Step step : steps) {
+            switch (step.getAction()) {
+                case "Open":
+                    urlStep = step.getObject();
+                    System.out.println("===============TestScript open link=============");
+                    System.out.println("driver.get(\"" + urlStep + "\")");
+                    System.out.println("================================================");
+                    rootTree = buildDOMTree(urlStep);
+                    break;
+                case "Fill":
+                    processFillStep(step, rootTree);
+                    break;
+                case "Click":
+                    processClickStep(step, rootTree);
+                    break;
             }
         }
-
     }
+
+    private static void processFillStep(Step step, DomNode rootTree) {
+        System.out.println("In ra Fill:");
+        List<String> cond = Arrays.asList(step.getField(), "input", "textarea");
+        List<DomNode> sampleNodes = DOMTreeBuilder.findNodeCondition(cond, rootTree);
+        System.out.println("Soluong: " + sampleNodes.size());
+        for (DomNode node : sampleNodes) {
+            String id = node.getAttributes().get("id");
+            String name = node.getAttributes().get("name");
+            String cssSelector = node.getAttributes().get("class");
+            String xpath = node.getFullXPath();
+
+            if (id != null && !id.isEmpty()) {
+                System.out.println("===============TestScript By Id=============");
+                System.out.println("driver.findElement(By.id(\"" + id + "\")).sendKeys(\"" + step.getObject() + "\")");
+            } else if (name != null && !name.isEmpty()) {
+                System.out.println("===============TestScript By Name=============");
+                System.out.println("driver.findElement(By.name(\"" + name + "\")).sendKeys(\"" + step.getObject() + "\")");
+            } else if (cssSelector != null && !cssSelector.isEmpty()) {
+                System.out.println("===============TestScript By CssSelector=============");
+                System.out.println("driver.findElement(By.cssSelector(\"" + cssSelector + "\")).sendKeys(\"" + step.getObject() + "\")");
+            } else if (xpath != null && !xpath.isEmpty()) {
+                System.out.println("===============TestScript By XPath=============");
+                System.out.println("driver.findElement(By.xpath(\"" + xpath + "\")).sendKeys(\"" + step.getObject() + "\")");
+            } else {
+                System.out.println("=========================TEST===============");
+            }
+            System.out.println("============================================");
+        }
+    }
+
+    private static void processClickStep(Step step, DomNode rootTree) {
+        System.out.println("In ra button: ");
+        List<String> cond = Arrays.asList(step.getField(), step.getObject(), "button");
+        List<DomNode> sampleNodes = DOMTreeBuilder.findNodeCondition(cond, rootTree);
+        for (DomNode node : sampleNodes) {
+            String id = node.getAttributes().get("id");
+            String name = node.getAttributes().get("name");
+            String cssSelector = node.getAttributes().get("class");
+            String xpath = node.getFullXPath();
+
+            if (id != null && !id.isEmpty()) {
+                System.out.println("===============TestScript By Id=============");
+                System.out.println("driver.findElement(By.id(\"" + id + "\")).click()");
+            } else if (name != null && !name.isEmpty()) {
+                System.out.println("===============TestScript By Name=============");
+                System.out.println("driver.findElement(By.name(\"" + name + "\")).click()");
+            } else if (cssSelector != null && !cssSelector.isEmpty()) {
+                System.out.println("===============TestScript By CssSelector=============");
+                System.out.println("driver.findElement(By.cssSelector(\"" + cssSelector + "\")).click()");
+            } else if (xpath != null && !xpath.isEmpty()) {
+                System.out.println("===============TestScript By XPath=============");
+                System.out.println("driver.findElement(By.xpath(\"" + xpath + "\")).click()");
+            } else {
+                System.out.println("=========================TEST===============");
+            }
+            System.out.println("============================================");
+        }
+    }
+
     public static Step analyzeStep(String step) {
         CoreDocument document = new CoreDocument(step.substring(2));
-        pipeline.annotate(document);
+        PIPELINE.annotate(document);
 
         String action = null;
         String obj = null;
@@ -207,15 +220,23 @@ public class ParseNLP {
         return null;
     }
 
+    private static List<String> extractQuotedStrings(String text) {
+        List<String> matches = new ArrayList<>();
+        Matcher matcher = Pattern.compile("\"([^\"]*)\"").matcher(text);
+        while (matcher.find()) {
+            matches.add(matcher.group(1));
+        }
+        return matches;
+    }
+
     public static void main(String[] args) {
         List<String> data = getInputData(FILE_DATA, NUMBER_COL);
         data.remove(0);
-        List<Step> st = new ArrayList<>();
-        for (String s: data.get(2).split("\n")){
-            st.add(analyzeStep(s));
+        List<Step> steps = new ArrayList<>();
+        for (String s : data.get(4).split("\n")) {
+            steps.add(analyzeStep(s));
         }
+        generateScript(steps);
 
-
-        generateScript(st);
     }
 }

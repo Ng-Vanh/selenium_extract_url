@@ -13,7 +13,7 @@ public class DOMTreeBuilder {
     private static DomNode root;
 
     public DOMTreeBuilder(DomNode root) {
-        this.root = root;
+        DOMTreeBuilder.root = root;
     }
 
     public static DomNode buildDOMTree(String url) {
@@ -42,7 +42,6 @@ public class DOMTreeBuilder {
 
         String[] parts = xpath.split("/");
 
-        // Iterate over each part of the XPath to create or find corresponding nodes in the tree
         for (int i = 1; i < parts.length; i++) {
             String part = parts[i];
             int nthChild = getNthChild(part);
@@ -50,7 +49,6 @@ public class DOMTreeBuilder {
 
             DomNode child = findChild(current, tagName, nthChild);
             if (child == null) {
-                // Only add the id, className, and attributes at the last part of the XPath
                 if (i == parts.length - 1) {
                     child = new DomNode(tagName, id, attr, nthChild, elementPosition, content, className);
                 } else {
@@ -66,48 +64,33 @@ public class DOMTreeBuilder {
     }
 
     private static int getNthChild(String part) {
-        if (part.contains("[")) {
-            return Integer.parseInt(part.replaceAll(".*\\[|\\].*", ""));
-        } else {
-            return 1;
-        }
+        return part.contains("[") ? Integer.parseInt(part.replaceAll(".*\\[|\\].*", "")) : 1;
     }
-
 
     private static DomNode findChild(DomNode node, String tagName, int nthChild) {
-        for (DomNode child : node.getChildren()) {
-            if (child.getTagName().equals(tagName) && child.getNthChild() == nthChild) {
-                return child;
-            }
-        }
-        return null;
+        return node.getChildren().stream()
+                .filter(child -> child.getTagName().equals(tagName) && child.getNthChild() == nthChild)
+                .findFirst().orElse(null);
     }
+
     public static List<DomNode> findNodeCondition(List<String> conditions, DomNode root) {
         List<DomNode> matchingNodes = new ArrayList<>();
         findNodeConditionInTree(root, conditions, matchingNodes);
         return matchingNodes;
     }
 
-    private static boolean findNodeConditionInTree(DomNode node, List<String> conditions, List<DomNode> matchingNodes) {
-        // Check if the current node meets the conditions
-        boolean matched = matchesConditions(node, conditions);
-        if (matched) {
+    private static void findNodeConditionInTree(DomNode node, List<String> conditions, List<DomNode> matchingNodes) {
+        if (matchesConditions(node, conditions)) {
             matchingNodes.add(node);
-            return true; // Early termination on finding a match
         }
-
-        // Recursively check children
         for (DomNode child : node.getChildren()) {
-            if (findNodeConditionInTree(child, conditions, matchingNodes)) {
-                return true; // Early termination on finding a match
-            }
+            findNodeConditionInTree(child, conditions, matchingNodes);
         }
-        return false;
     }
 
     private static boolean matchesConditions(DomNode node, List<String> conditions) {
         Map<String, String> attributes = node.getAttributes();
-        String content = node.getContent(); // Assuming getContent() exists in DomNode
+        String content = node.getContent();
         String id = node.getId();
         String name = attributes != null ? attributes.get("name") : null;
         String classAttr = attributes != null ? attributes.get("class") : null;
@@ -117,40 +100,19 @@ public class DOMTreeBuilder {
         String tagName = node.getTagName();
 
         for (String condition : conditions) {
-            if (id != null && id.contains(condition)) {
-                System.out.println("id");
-                return true;
-            }
-            if (name != null && name.contains(condition)) {
-                System.out.println("name");
-                return true;
-            }
-            if (classAttr != null && classAttr.contains(condition)) {
-                System.out.println("class");
-                return true;
-            }
-            if (type != null && type.contains(condition)) {
-                System.out.println("type");
-                return true;
-            }
-            if (placeholder != null && placeholder.contains(condition)) {
-                System.out.println("placeholder");
-                return true;
-            }
-            if (data != null && data.contains(condition)) {
-                System.out.println("data");
-                return true;
-            }
-            if (tagName != null && tagName.contains(condition)) {
-                System.out.println("tagname");
-                return true;
-            }
-            if (content != null && content.contains(condition)) {
-                System.out.println("content");
+            if (matchesCondition(condition, id, name, classAttr, type, placeholder, data, tagName, content)) {
                 return true;
             }
         }
         return false;
     }
 
+    private static boolean matchesCondition(String condition, String... attributes) {
+        for (String attribute : attributes) {
+            if (attribute != null && attribute.contains(condition)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
