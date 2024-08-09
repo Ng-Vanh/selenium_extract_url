@@ -133,12 +133,10 @@ public class ParseNLP {
         driver.findElement(By.id("wp-submit")).click();
     }
     private static void processFillStep(Step step, DomNode rootTree) {
-        System.out.println("In ra Fill:");
-        System.out.println(step.getObject() + step.getAction());
-        List<String> cond = Arrays.asList(step.getField(), "input", "textarea");
-        List<DomNode> sampleNodes = DOMTreeBuilder.findNodeCondition(cond, rootTree);
-        System.out.println("Soluong: " + sampleNodes.size());
-        for (DomNode node : sampleNodes) {
+        List<String> cond = Arrays.asList(step.getField(),"input");
+        DomNode node = DOMTreeBuilder.findNodeCondition(cond, rootTree);
+
+        if (node != null) {
             String id = node.getAttributes().get("id");
             String name = node.getAttributes().get("name");
             String cssSelector = node.getAttributes().get("class");
@@ -160,14 +158,15 @@ public class ParseNLP {
                 System.out.println("=========================TEST===============");
             }
             System.out.println("============================================");
+        } else {
+            System.out.println("No matching node found.");
         }
     }
 
     private static void processClickStep(Step step, DomNode rootTree) {
-        System.out.println("In ra button: ");
-        List<String> cond = Arrays.asList(step.getField(), step.getObject(), "button");
-        List<DomNode> sampleNodes = DOMTreeBuilder.findNodeCondition(cond, rootTree);
-        for (DomNode node : sampleNodes) {
+        List<String> cond = Arrays.asList(step.getField(), step.getObject());
+        DomNode node = DOMTreeBuilder.findNodeCondition(cond, rootTree);
+        if (node != null) {
             String id = node.getAttributes().get("id");
             String name = node.getAttributes().get("name");
             String cssSelector = node.getAttributes().get("class");
@@ -189,16 +188,17 @@ public class ParseNLP {
                 System.out.println("=========================TEST===============");
             }
             System.out.println("============================================");
+        } else {
+            System.out.println("No matching node found.");
         }
     }
 
     private static void processHoverStep(Step step, DomNode rootTree) {
         System.out.println("In ra Hover:");
         List<String> cond = Arrays.asList(step.getField(), step.getObject());
-        System.out.println(step.getField()+ step.getObject());
-        List<DomNode> sampleNodes = DOMTreeBuilder.findNodeCondition(cond, rootTree);
-        System.out.println("Soluong: " + sampleNodes.size());
-        for (DomNode node : sampleNodes) {
+        DomNode node = DOMTreeBuilder.findNodeCondition(cond, rootTree);
+
+        if (node != null) {
             String id = node.getAttributes().get("id");
             String name = node.getAttributes().get("name");
             String cssSelector = node.getAttributes().get("class");
@@ -222,6 +222,8 @@ public class ParseNLP {
             System.out.println("Actions actions = new Actions(driver);");
             System.out.println("actions.moveToElement(element).perform();");
             System.out.println("============================================");
+        } else {
+            System.out.println("No matching node found.");
         }
     }
 
@@ -261,12 +263,24 @@ public class ParseNLP {
                 Pattern pattern = Pattern.compile("\"([^\"]*)\"");
                 Matcher matcher = pattern.matcher(sentenceText);
                 List<String> matches = new ArrayList<>();
+
+                // Tìm tất cả các chuỗi trong ngoặc kép
                 while (matcher.find()) {
                     matches.add(matcher.group(1));
                 }
+
                 if (matches.size() >= 1) {
-                    obj = matches.get(0); // Button name or identifier
-                    field = matches.size() > 1 ? matches.get(1) : "No field found"; // Optional field name, if any
+                    obj = matches.get(0); // Lấy đối tượng chính, như là tên nút "Login"
+
+                    // Tìm từ sau dấu ngoặc kép để lấy field
+                    int endQuoteIndex = sentenceText.indexOf("\"", sentenceText.indexOf(matches.get(0)) + 1);
+                    if (endQuoteIndex != -1 && endQuoteIndex + 1 < sentenceText.length()) {
+                        String remainingText = sentenceText.substring(endQuoteIndex + 1).trim();
+                        // Field là từ đầu tiên trong phần còn lại của câu
+                        field = remainingText.split("\\s+")[0];
+                    } else {
+                        field = "No field found";
+                    }
                 } else {
                     obj = "No object found";
                     field = "No field found";
@@ -310,18 +324,25 @@ public class ParseNLP {
     public static void main(String[] args) {
         List<String> data = getInputData(FILE_DATA, NUMBER_COL);
         data.remove(0);
+
 //        for(String da: data){
+//            System.out.println(">>>>>>>>>>Start>>>>>>>>");
 //            List<Step> steps = new ArrayList<>();
 //            for (String s : da.split("\n")) {
 //                steps.add(analyzeStep(s));
 //            }
 //            generateScript(steps);
+//            System.out.println(">>>>>>>>>>End>>>>>>>>");
+//
 //        }
+
+
         List<Step> steps = new ArrayList<>();
         for(String s: data.get(3).split("\n")){
             steps.add(analyzeStep(s));
         }
         generateScript(steps);
+        driver.quit();
 
 
     }
